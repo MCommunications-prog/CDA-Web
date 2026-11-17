@@ -239,6 +239,32 @@ footer a{text-decoration:none;opacity:.9}
 footer a:hover{text-decoration:underline}
 .legal{grid-column:1/-1;border-top:1px solid color-mix(in srgb,var(--on-navy) 15%,transparent);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
 @media (max-width:820px){footer .wrap{grid-template-columns:1fr}}
+/* Reproductor */
+.player{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ptabs{display:flex;gap:8px;flex-wrap:wrap}
+.ptabs button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.95rem}
+.ptabs button[aria-selected="true"]{background:var(--gold);color:var(--clay-ink);border-color:var(--gold)}
+.ptabs button:focus-visible{outline:3px solid var(--clay);outline-offset:2px}
+.ptabs .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.ptabs button.on-air .dot{background:var(--live,#d93025);box-shadow:0 0 0 4px color-mix(in srgb,var(--live,#d93025) 25%,transparent)}
+.screen.frame{padding:0;overflow:hidden;background:#000}
+.screen.frame iframe{width:100%;height:100%;border:0;display:block}
+.pnote{margin:0;color:var(--muted);font-size:.92rem}
+/* Botón flotante Escríbenos */
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border-radius:999px;background:var(--gold);color:var(--clay-ink);font-weight:700;font-size:1.02rem;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.fab-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.fab-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fab-panel{width:min(320px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.3);padding:16px}
+.fab-panel[hidden]{display:none!important}
+.fab-panel h3{margin:0 0 2px;font-family:var(--display);font-size:1.15rem}
+.fab-panel p{margin:0 0 12px;color:var(--muted);font-size:.92rem}
+.fab-panel a{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;text-decoration:none;color:inherit;font-weight:600}
+.fab-panel a:hover,.fab-panel a:focus-visible{background:var(--clay-soft)}
+.fab-panel .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none;font-family:var(--display);font-weight:700}
+.fab-panel small{display:block;color:var(--muted);font-weight:400}
+@media print{.fab{display:none}}
+footer{padding-bottom:96px}
 </style>
 
 <header class="nav">
@@ -252,7 +278,7 @@ footer a:hover{text-decoration:underline}
       <a href="#horarios">Horarios</a>
       <a href="#nosotros">Nosotros</a>
       <a href="#ministerios">Ministerios</a>
-      <a href="#en-vivo">Redes</a>
+      <a href="#en-vivo">En vivo</a>
       <a href="#ofrendar">Ofrendar</a>
       <a class="cta" href="#visitanos">Planifica tu visita</a>
     </nav>
@@ -405,14 +431,17 @@ footer a:hover{text-decoration:underline}
       <div class="sec-head">
         <span class="eyebrow">En vivo y redes</span>
         <h2>Síguenos durante la semana</h2>
-        <p class="lead">Encuentra los cultos y mensajes de CDA en YouTube, y las noticias de la semana en Facebook e Instagram.</p>
+        <p class="lead">Mira el culto en vivo o el más reciente aquí mismo, y sigue las noticias de la semana en Facebook e Instagram.</p>
       </div>
       <div class="live">
-        <a class="screen" id="ytMain" href="https://www.youtube.com/@cdaministry4488" target="_blank" rel="noopener">
-          <span class="eyebrow" style="color:inherit;opacity:.8">YouTube · CDA Ministry</span>
-          <span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-          <b>Ver el canal de CDA</b>
-        </a>
+        <div class="player">
+          <div class="ptabs" role="tablist" aria-label="Qué ver">
+            <button type="button" role="tab" id="tabLive" data-v="live" aria-selected="false"><span class="dot"></span>En vivo</button>
+            <button type="button" role="tab" id="tabLast" data-v="last" aria-selected="true">Último culto</button>
+          </div>
+          <div class="screen frame"><iframe id="ytFrame" title="Video de CDA en YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          <p class="pnote" id="pNote">Aquí verás el culto más reciente. Durante los cultos, el video en vivo aparece aquí solo.</p>
+        </div>
         <div class="channels">
           <a class="chan" href="https://www.youtube.com/@cdaministry4488" target="_blank" rel="noopener"><span class="ic" style="background:#d93025">▶</span><div><b>YouTube</b><small>@cdaministry4488</small></div></a>
           <a class="chan" href="https://www.facebook.com/share/18eT1Du1uz/" target="_blank" rel="noopener"><span class="ic" style="background:#1d5bd6">f</span><div><b>Facebook</b><small>Noticias y anuncios de CDA</small></div></a>
@@ -495,6 +524,18 @@ footer a:hover{text-decoration:underline}
     <div class="legal"><small>© <span id="yr">2026</span> CDA Orlando Inc · Iglesia de Dios CDA Orlando</small><small>Iglesia de Dios · Región Sureste Hispana</small></div>
   </div>
 </footer>
+<div class="fab" id="fab">
+  <div class="fab-panel" id="fabPanel" role="dialog" aria-labelledby="fabTitle" hidden>
+    <h3 id="fabTitle">¿Tienes una pregunta?</h3>
+    <p>Escríbenos o llámanos. Te respondemos con gusto.</p>
+    <a href="sms:+13213151506"><span class="ic" style="background:#2e7d32">✉</span><div>Enviar mensaje de texto<small>(321) 315-1506</small></div></a>
+    <a href="tel:+13213151506"><span class="ic" style="background:#455a64">☎</span><div>Llamar<small>(321) 315-1506</small></div></a>
+    <a href="https://ig.me/m/cdaministry" target="_blank" rel="noopener"><span class="ic" style="background:#b8327a">IG</span><div>Mensaje por Instagram<small>@cdaministry</small></div></a>
+    <a href="https://www.facebook.com/share/18eT1Du1uz/" target="_blank" rel="noopener"><span class="ic" style="background:#1d5bd6">f</span><div>Escríbenos en Facebook<small>Página de CDA</small></div></a>
+  </div>
+  <button type="button" class="fab-btn" id="fabBtn" aria-expanded="false" aria-controls="fabPanel"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span id="fabTxt">Escríbenos</span></button>
+</div>
+
 
 <script>
 (function(){
@@ -551,6 +592,27 @@ footer a:hover{text-decoration:underline}
   document.querySelectorAll('[data-hasta]').forEach(function(e){if(new Date(e.dataset.hasta)<new Date())e.remove()});
   var evs=document.getElementById('eventos');if(evs&&!evs.querySelector('.event'))evs.hidden=true;
   tick();setInterval(tick,30000);
+  // Reproductor de YouTube: en vivo durante los cultos, si no el último culto
+  var CH='UCF9J9rsD1Bl1QD3lcDgU7tw',LIVE='https://www.youtube.com/embed/live_stream?channel='+CH+'&rel=0',LAST='https://www.youtube.com/embed/videoseries?list=UU'+CH.slice(2)+'&rel=0';
+  var STREAM=[{d:0,from:11*60+45,to:13*60+45},{d:3,from:19*60+15,to:21*60+15}];
+  function onAir(){var n=orlandoNow();return STREAM.some(function(w){return n.d===w.d&&n.min>=w.from&&n.min<w.to})}
+  var frame=document.getElementById('ytFrame'),tL=document.getElementById('tabLive'),tP=document.getElementById('tabLast'),note=document.getElementById('pNote'),chosen=null,shown=null;
+  function show(v){
+    if(v===shown)return;shown=v;
+    frame.src=v==='live'?LIVE:LAST;
+    tL.setAttribute('aria-selected',v==='live');tP.setAttribute('aria-selected',v==='last');
+    note.textContent=v==='live'?(onAir()?'Estamos transmitiendo en vivo. Si el video no arranca todavía, espera un momento o mira el último culto.':'Ahora no estamos en vivo. Los cultos se transmiten los domingos a las 12:00 pm y los miércoles a las 7:30 pm.'):'Aquí verás el culto más reciente. Durante los cultos, el video en vivo aparece aquí solo.';
+  }
+  function player(){var a=onAir();tL.classList.toggle('on-air',a);show(chosen||(a?'live':'last'))}
+  [tL,tP].forEach(function(b){b.addEventListener('click',function(){chosen=b.dataset.v;shown=null;show(chosen)})});
+  player();setInterval(player,60000);
+  // Botón Escríbenos
+  var fb=document.getElementById('fabBtn'),fp=document.getElementById('fabPanel'),ft=document.getElementById('fabTxt');
+  function fab(open){fp.hidden=!open;fb.setAttribute('aria-expanded',open);ft.textContent=open?'Cerrar':'Escríbenos';if(open)fp.querySelector('a').focus()}
+  fb.addEventListener('click',function(){fab(fp.hidden)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!fp.hidden){fab(false);fb.focus()}});
+  document.addEventListener('click',function(e){if(!fp.hidden&&!document.getElementById('fab').contains(e.target))fab(false)});
+
   document.getElementById('yr').textContent=new Date().getFullYear();
 })();
 </script>
