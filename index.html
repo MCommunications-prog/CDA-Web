@@ -440,7 +440,7 @@ footer{padding-bottom:96px}
             <button type="button" role="tab" id="tabLast" data-v="last" aria-selected="true">Último culto</button>
           </div>
           <div class="screen frame"><iframe id="ytFrame" title="Video de CDA en YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-          <p class="pnote" id="pNote">Aquí verás el culto más reciente. Durante los cultos, el video en vivo aparece aquí solo.</p>
+          <p class="pnote" id="pNote">Aquí verás el culto más reciente. Los domingos durante el culto, el video en vivo aparece aquí solo.</p>
         </div>
         <div class="channels">
           <a class="chan" href="https://www.youtube.com/@cdaministry4488" target="_blank" rel="noopener"><span class="ic" style="background:#d93025">▶</span><div><b>YouTube</b><small>@cdaministry4488</small></div></a>
@@ -594,14 +594,14 @@ footer{padding-bottom:96px}
   tick();setInterval(tick,30000);
   // Reproductor de YouTube: en vivo durante los cultos, si no el último culto
   var CH='UCF9J9rsD1Bl1QD3lcDgU7tw',LIVE='https://www.youtube.com/embed/live_stream?channel='+CH+'&rel=0',LAST='https://www.youtube.com/embed/videoseries?list=UU'+CH.slice(2)+'&rel=0';
-  var STREAM=[{d:0,from:11*60+45,to:13*60+45},{d:3,from:19*60+15,to:21*60+15}];
+  var STREAM=[{d:0,from:11*60+45,to:13*60+45}];
   function onAir(){var n=orlandoNow();return STREAM.some(function(w){return n.d===w.d&&n.min>=w.from&&n.min<w.to})}
   var frame=document.getElementById('ytFrame'),tL=document.getElementById('tabLive'),tP=document.getElementById('tabLast'),note=document.getElementById('pNote'),chosen=null,shown=null;
   function show(v){
     if(v===shown)return;shown=v;
     frame.src=v==='live'?LIVE:LAST;
     tL.setAttribute('aria-selected',v==='live');tP.setAttribute('aria-selected',v==='last');
-    note.textContent=v==='live'?(onAir()?'Estamos transmitiendo en vivo. Si el video no arranca todavía, espera un momento o mira el último culto.':'Ahora no estamos en vivo. Los cultos se transmiten los domingos a las 12:00 pm y los miércoles a las 7:30 pm.'):'Aquí verás el culto más reciente. Durante los cultos, el video en vivo aparece aquí solo.';
+    note.textContent=v==='live'?(onAir()?'Estamos transmitiendo en vivo. Si el video no arranca todavía, espera un momento o mira el último culto.':'Ahora no estamos en vivo. El culto dominical se transmite los domingos a las 12:00 pm.'):'Aquí verás el culto más reciente. Los domingos durante el culto, el video en vivo aparece aquí solo.';
   }
   function player(){var a=onAir();tL.classList.toggle('on-air',a);show(chosen||(a?'live':'last'))}
   [tL,tP].forEach(function(b){b.addEventListener('click',function(){chosen=b.dataset.v;shown=null;show(chosen)})});
