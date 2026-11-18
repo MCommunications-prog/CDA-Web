@@ -109,13 +109,15 @@ section.band.alt{background:var(--surface);border-block:1px solid var(--line)}
 @media (max-width:600px){section.band{padding-block:56px}}
 
 /* Horarios */
-.sched{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.sched{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:1100px){.sched{grid-template-columns:repeat(2,1fr)}}
 .slot{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .slot .day{font-family:var(--display);font-size:.85rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .slot .time{font-family:var(--display);font-size:2.4rem;font-weight:300;line-height:1;font-variant-numeric:tabular-nums;color:var(--navy)}
 .slot .time small{font-size:1rem;font-weight:500;margin-left:4px}
 .slot h3{font-size:1.2rem}
 .slot p{color:var(--muted);font-size:.95rem}
+.slot p a{color:var(--clay);font-weight:600}
 .slot.main{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
 .slot.main .day,.slot.main p{color:color-mix(in srgb,var(--on-navy) 78%,transparent)}
 .slot.main .time{color:var(--on-navy)}
@@ -427,6 +429,12 @@ footer .motto{font-weight:800;color:var(--ink)}
           <p>De 7:00 a 10:00 pm. Formación bíblica y ministerial con el CTS, Centro Híbrido Orlando, presencial y en línea.</p>
         </article>
         <article class="reveal slot">
+          <span class="day">Martes y jueves</span>
+          <span class="time">5:00<small>am</small></span>
+          <h3>Oración por videollamada</h3>
+          <p>Oración temprano en la mañana desde casa. Si quieres la información para conectarte, <a href="#fab" class="ask-link">escríbenos</a>.</p>
+        </article>
+        <article class="reveal slot">
           <span class="day">Miércoles</span>
           <span class="time">7:30<small>pm</small></span>
           <h3>Estudio bíblico y oración</h3>
@@ -659,6 +667,8 @@ footer .motto{font-weight:800;color:var(--ink)}
   var MEET=[
     {d:0,h:12,m:0,dur:90,name:'Culto dominical'},
     {d:1,h:19,m:0,dur:180,name:'Instituto Bíblico'},
+    {d:2,h:5,m:0,dur:60,name:'Oración por videollamada'},
+    {d:4,h:5,m:0,dur:60,name:'Oración por videollamada'},
     {d:3,h:19,m:30,dur:90,name:'Estudio bíblico y oración'}
   ];
   var DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -720,6 +730,7 @@ footer .motto{font-weight:800;color:var(--ink)}
   var fb=document.getElementById('fabBtn'),fp=document.getElementById('fabPanel'),ft=document.getElementById('fabTxt');
   function fab(open){fp.hidden=!open;fb.setAttribute('aria-expanded',open);ft.textContent=open?'Cerrar':'Escríbenos';if(open)fp.querySelector('a').focus()}
   fb.addEventListener('click',function(){fab(fp.hidden)});
+  document.querySelectorAll('.ask-link').forEach(function(l){l.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();fab(true)})});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!fp.hidden){fab(false);fb.focus()}});
   document.addEventListener('click',function(e){if(!fp.hidden&&!document.getElementById('fab').contains(e.target))fab(false)});
 
