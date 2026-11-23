@@ -479,6 +479,20 @@ footer .motto{font-weight:800;color:var(--ink)}
       <div class="where"><span><b>Dirección:</b> 9227 2nd Avenue, Orlando, FL 32824</span><span><b>Teléfono:</b> (321) 315-1506</span></div>
       <div class="events" id="eventos">
         <span class="eyebrow">Próximos eventos</span>
+        <article class="event" data-hasta="2026-11-26T23:59:00-05:00">
+          <div class="date"><b>24</b><span>Nov</span></div>
+          <div class="info">
+            <h3>Esta semana no hay oración de 5:00 am</h3>
+            <p>El martes 24 y el jueves 26 de noviembre no habrá oración por videollamada.</p>
+          </div>
+        </article>
+        <article class="event" data-hasta="2026-11-25T23:59:00-05:00">
+          <div class="date"><b>25</b><span>Nov</span></div>
+          <div class="info">
+            <h3>Celebración de Thanksgiving</h3>
+            <p>Miércoles 25 de noviembre a las 7:30 pm. ¡Te esperamos para dar gracias juntos!</p>
+          </div>
+        </article>
         <article class="event" data-hasta="2026-11-21T23:59:00-05:00">
           <div class="date"><b>21</b><span>Nov</span></div>
           <div class="info">
@@ -731,21 +745,34 @@ footer .motto{font-weight:800;color:var(--ink)}
     {d:4,h:5,m:0,dur:60,name:'Oración por videollamada'},
     {d:3,h:19,m:30,dur:90,name:'Estudio bíblico y oración'}
   ];
+  // Cambios de una fecha (Orlando), por día de la semana (0=domingo): skip = no hay reunión; name/h/m = cambia esa reunión
+  var CAMBIOS={
+    '2026-11-24':{2:{skip:1}},
+    '2026-11-26':{4:{skip:1}},
+    '2026-11-25':{3:{name:'Celebración de Thanksgiving'}}
+  };
   var DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   function orlandoNow(){
     try{
-      var p={};new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});
-      return {d:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday),min:(+p.hour%24)*60+(+p.minute)};
-    }catch(e){var n=new Date();return {d:n.getDay(),min:n.getHours()*60+n.getMinutes()}}
+      var p={};new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'numeric',day:'numeric',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});
+      return {d:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday),min:(+p.hour%24)*60+(+p.minute),ymd:[+p.year,+p.month,+p.day]};
+    }catch(e){var n=new Date();return {d:n.getDay(),min:n.getHours()*60+n.getMinutes(),ymd:[n.getFullYear(),n.getMonth()+1,n.getDate()]}}
   }
   function fmt(h,m){var ap=h>=12?'pm':'am',hh=h%12||12;return hh+':'+(m<10?'0':'')+m+' '+ap}
   function tick(){
     var now=orlandoNow(),weekMin=now.d*1440+now.min,best=null,cur=null;
-    MEET.forEach(function(x){
-      var s=x.d*1440+x.h*60+x.m,diff=s-weekMin;
-      if(weekMin>=s&&weekMin<s+x.dur)cur=x;
-      if(diff<=0)diff+=7*1440;
-      if(!best||diff<best.diff)best={x:x,diff:diff};
+    function dayKey(off){var t=new Date(Date.UTC(now.ymd[0],now.ymd[1]-1,now.ymd[2]+off));return t.toISOString().slice(0,10)}
+    function occ(i,x,off){var c=(CAMBIOS[dayKey(off)]||{})[x.d];if(!c)return x;if(c.skip)return null;return {d:x.d,h:c.h==null?x.h:c.h,m:c.m==null?x.m:c.m,dur:x.dur,name:c.name||x.name}}
+    MEET.forEach(function(x0,i){
+      var off=(x0.d-now.d+7)%7;
+      for(var k=0;k<3;k++){
+        var x=occ(i,x0,off+7*k);if(!x)continue;
+        var st=x.h*60+x.m,diff=(off+7*k)*1440+st-now.min;
+        if(k===0&&off===0&&now.min>=st&&now.min<st+x.dur)cur=x;
+        if(diff<=0){continue}
+        if(!best||diff<best.diff)best={x:x,diff:diff};
+        break;
+      }
     });
     var pill=document.getElementById('livePill');
     if(cur){
