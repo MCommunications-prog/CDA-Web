@@ -229,6 +229,10 @@ blockquote.jer cite{font-style:normal;font-size:.9rem;color:var(--muted)}
 
 /* Ofrendar */
 .give{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.give .gfeat{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(150deg,#fff6d6,#ffe9a8);border-color:transparent}
+.give .gfeat .btn{flex:none}
+@media (max-width:700px){.give .gfeat{flex-direction:column;align-items:stretch}.give .gfeat .btn{justify-content:center}}
+
 .gcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .gcard h3{font-size:1.2rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gcard p{color:var(--muted);font-size:.95rem}
@@ -448,7 +452,7 @@ footer .motto{font-weight:800;color:var(--ink)}
 
   <div class="quick wrap">
     <a class="qcard q1 reveal" href="#en-vivo"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z"/></svg><b>Cultos en vivo</b><span>Domingos 12:00 pm</span></a>
-    <a class="qcard q2 reveal" href="#ofrendar"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg><b>Ofrendar</b><span>Zelle y PayPal</span></a>
+    <a class="qcard q2 reveal" href="#ofrendar"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg><b>Ofrendar</b><span>Tarjeta, Zelle y PayPal</span></a>
     <a class="qcard q3 reveal" href="#visitanos"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><b>Planifica tu visita</b><span>9227 2nd Ave, Orlando</span></a>
   </div>
 
@@ -646,6 +650,13 @@ footer .motto{font-weight:800;color:var(--ink)}
         <p class="lead">Gracias por sembrar en la obra de Dios.</p>
       </div>
       <div class="give">
+        <div class="reveal gcard gfeat">
+          <div>
+            <h3>Tarjeta, Apple Pay o Google Pay <span class="free">Sin comisión</span></h3>
+            <p>Ofrenda en línea, segura, sin descargar ninguna app.</p>
+          </div>
+          <a class="btn" href="https://www.zeffy.com/es-US/donation-form/diezmos-y-ofrendas-cda" target="_blank" rel="noopener">Ofrendar con tarjeta</a>
+        </div>
         <div class="reveal gcard">
           <h3>Zelle <span class="free">Sin comisión</span></h3>
           <p>Desde la app de tu banco, envía tu diezmo u ofrenda por Zelle a este correo:</p>
