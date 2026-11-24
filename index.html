@@ -173,6 +173,12 @@ blockquote.jer cite{font-style:normal;font-size:.9rem;color:var(--muted)}
 .lead-by small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 .facts{display:flex;flex-wrap:wrap;gap:8px}
 .facts span{font-size:.85rem;font-weight:500;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg)}
+.citah{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.citah li{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.citah li:first-child{border-top:0}
+.citah span{text-align:right;color:var(--muted)}
+.citacard{background:linear-gradient(150deg,#fff6d6,#ffe9a8)}
+.citacard .btn{justify-content:center}
 .pray{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:start}
 .pray-copy p{color:var(--muted);margin:0 0 12px}
 .pform{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:grid;gap:14px;box-shadow:0 12px 32px rgba(23,32,64,.08)}
@@ -418,6 +424,7 @@ footer .motto{font-weight:800;color:var(--ink)}
       <a href="#ministerios">Ministerios</a>
       <a href="#en-vivo">En vivo</a>
       <a href="#oracion">Oración</a>
+      <a href="#cita">Cita pastoral</a>
       <a href="#ofrendar">Ofrendar</a>
       <a class="cta" href="#visitanos">Planifica tu visita</a>
     </nav>
@@ -642,7 +649,28 @@ footer .motto{font-weight:800;color:var(--ink)}
     </div>
   </section>
 
-  <section class="band" id="ofrendar">
+  <section class="band" id="cita">
+    <div class="wrap pray">
+      <div class="pray-copy reveal">
+        <span class="eyebrow">Consejería pastoral</span>
+        <h2>¿Quieres una cita con el pastor?</h2>
+        <p class="lead">Agenda tu reunión con el Obispo Octavio Guillén. Escoge el día y la hora que te queden mejor.</p>
+        <p>Recibirás la confirmación y un recordatorio en tu correo. Las citas son de 30 minutos, en el templo: 9227 2nd Avenue, Orlando.</p>
+      </div>
+      <div class="gcard citacard reveal">
+        <h3>Horarios disponibles</h3>
+        <ul class="citah">
+          <li><b>Martes</b><span>9:00 am – 12:00 pm<br>6:00 – 8:00 pm</span></li>
+          <li><b>Miércoles</b><span>6:00 – 7:00 pm</span></li>
+          <li><b>Viernes</b><span>6:00 – 8:00 pm</span></li>
+        </ul>
+        <a class="btn" href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ3XdiZ4Gpck4za2HxzRnJJLzhEE5i2UcFqQXtQ54cqjdw5QikseNaf2wcPoY4D20Ffa-9sT3aAE" target="_blank" rel="noopener">Agenda tu reunión</a>
+        <p class="note">Hora de Orlando.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="ofrendar">
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="eyebrow">Diezmos y ofrendas</span>
@@ -676,7 +704,7 @@ footer .motto{font-weight:800;color:var(--ink)}
     </div>
   </section>
 
-  <section class="band alt" id="visitanos">
+  <section class="band" id="visitanos">
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="eyebrow">Planifica tu visita</span>
@@ -718,7 +746,7 @@ footer .motto{font-weight:800;color:var(--ink)}
     </div>
     <div>
       <h4>Secciones</h4>
-      <ul><li><a href="#horarios">Horarios</a></li><li><a href="#nosotros">Nosotros</a></li><li><a href="#ministerios">Ministerios</a></li><li><a href="#ofrendar">Ofrendar</a></li></ul>
+      <ul><li><a href="#horarios">Horarios</a></li><li><a href="#nosotros">Nosotros</a></li><li><a href="#ministerios">Ministerios</a></li><li><a href="#cita">Cita con el pastor</a></li><li><a href="#ofrendar">Ofrendar</a></li></ul>
     </div>
     <div class="legal"><small>© <span id="yr">2026</span> CDA Orlando Inc · Iglesia de Dios CDA Orlando</small><small>Iglesia de Dios · Región Sureste Hispana · <a href="privacidad/">Política de privacidad</a></small></div>
   </div>
