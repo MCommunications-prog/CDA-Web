@@ -205,6 +205,8 @@ blockquote.jer cite{font-style:normal;font-size:.9rem;color:var(--muted)}
 .regdlg .regev span{color:var(--muted);font-size:.95rem}
 .regdlg select,.regdlg input[type=tel],.regdlg input[type=email]{font:inherit;font-weight:400;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
 .regdlg textarea{min-height:70px}
+.regdlg .ticket{display:block;width:100%;max-width:300px;margin:0 auto;border-radius:18px;box-shadow:0 6px 24px rgba(0,0,0,.14)}
+.regdlg #regCal{background:var(--bg,#f6f7fb);box-shadow:none;justify-content:center}
 .regdlg .cerrar{background:none;border:0;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;padding:8px}
 @media (max-width:820px){.pray{grid-template-columns:1fr;gap:24px}}
 @media (max-width:820px){.about{grid-template-columns:1fr;gap:36px}}
@@ -549,6 +551,10 @@ footer .motto{font-weight:800;color:var(--ink)}
         <button class="btn" type="submit" id="regSend">Confirmar registro</button>
       </div>
       <p class="msg" id="regMsg" role="status"></p>
+      <div id="regBol" hidden style="display:grid;gap:12px">
+        <canvas id="regTicket" class="ticket" aria-label="Tu boleto con código QR"></canvas>
+        <button class="btn" type="button" id="regSave">Guardar boleto</button>
+      </div>
       <a class="btn" id="regCal" target="_blank" rel="noopener" hidden>Agregar a mi calendario</a>
       <button class="cerrar" type="button" id="regClose">Cerrar</button>
     </form>
@@ -916,17 +922,54 @@ footer .motto{font-weight:800;color:var(--ink)}
       .then(function(){ps.disabled=false;ps.textContent='Enviar'});
   });
 
+  // Boleto con código QR: se dibuja en el mismo teléfono. El QR solo lleva el número de boleto (sin datos personales).
+  var QR_LIB="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";
+  function nuevoBoleto(){var A="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=new Uint8Array(6),s="";crypto.getRandomValues(r);for(var i=0;i<6;i++)s+=A[r[i]%A.length];return "CDA-"+s}
+  function cargarQR(){return window.qrcode?Promise.resolve():new Promise(function(ok,no){var s=document.createElement("script");s.src=QR_LIB;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+  function dibujarBoleto(c,b){
+    return cargarQR().then(function(){
+      var W=600,x=c.getContext("2d");c.width=W;
+      function rr(X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+      function lineas(t,max,font){x.font=font;var p=String(t).split(" "),o=[],l="";p.forEach(function(w){var n=l?l+" "+w:w;if(x.measureText(n).width>max&&l){o.push(l);l=w}else l=n});if(l)o.push(l);return o.slice(0,2)}
+      var tit=lineas(b.evento,W-80,"800 34px Montserrat, Arial, sans-serif"),q=qrcode(0,"M");q.addData(b.code);q.make();
+      var n=q.getModuleCount(),cel=Math.floor(380/n),T=cel*n,H=175+42*tit.length+34+40+T+120;c.height=H;
+      x.clearRect(0,0,W,H);rr(0,0,W,H,36);x.fillStyle="#fff";x.fill();
+      x.save();rr(0,0,W,H,36);x.clip();var g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,"#ffe066");g.addColorStop(.5,"#f5c518");g.addColorStop(1,"#ffb81c");x.fillStyle=g;x.fillRect(0,0,W,120);x.restore();
+      x.fillStyle="#171a21";x.textBaseline="alphabetic";x.font="800 30px Montserrat, Arial, sans-serif";x.fillText("CDA Casa del Alfarero",40,62);
+      x.font="600 20px Inter, Arial, sans-serif";x.fillText("BOLETO DE ENTRADA",40,95);
+      var y=175;x.font="800 34px Montserrat, Arial, sans-serif";tit.forEach(function(l){x.fillText(l,40,y);y+=42});
+      x.fillStyle="#5a6072";x.font="500 22px Inter, Arial, sans-serif";x.fillText(b.cuando,40,y);y+=34;
+      x.fillText(b.name+" · "+b.cuantos+(b.cuantos==1?" persona":" personas"),40,y);
+      var ox=(W-T)/2,oy=y+40;
+      x.fillStyle="#171a21";for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))x.fillRect(ox+k*cel,oy+r*cel,cel,cel);
+      x.textAlign="center";x.font="800 34px Montserrat, Arial, sans-serif";x.fillText(b.code,W/2,oy+T+52);
+      x.fillStyle="#5a6072";x.font="500 20px Inter, Arial, sans-serif";x.fillText("Muestra este código al llegar",W/2,oy+T+86);x.textAlign="left";
+      x.setLineDash([10,10]);x.strokeStyle="#e3e5ec";x.lineWidth=3;x.beginPath();x.moveTo(30,135);x.lineTo(W-30,135);x.stroke();x.setLineDash([]);
+    });
+  }
+  function guardarBoleto(c,b){
+    c.toBlob(function(bl){
+      var f=new File([bl],"boleto-"+b.code+".png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Boleto "+b.evento}).catch(function(){});return}
+      var a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=f.name;document.body.appendChild(a);a.click();a.remove();
+    },"image/png");
+  }
+  function boletosGuardados(){try{return JSON.parse(localStorage.getItem("cda-boletos"))||{}}catch(e){return {}}}
+  function guardarLocal(k,b){var t=boletosGuardados();t[k]=b;try{localStorage.setItem("cda-boletos",JSON.stringify(t))}catch(e){}}
+  
   // Registro a eventos: llega a la hoja CDA APP INFO (pestaña Inscripciones) y a cdaorlandoministry@gmail.com
   var rd=document.getElementById('regDlg'),rf=document.getElementById('regForm'),rm=document.getElementById('regMsg'),rs=document.getElementById('regSend'),rc=document.getElementById('regCal'),rb=null;
   function regHechos(){try{return JSON.parse(localStorage.getItem('cda-registros'))||[]}catch(e){return []}}
-  function marcar(b){b.textContent='Ya estás registrado ✓';b.classList.add('done')}
+  function marcar(b){b.textContent=boletosGuardados()[b.dataset.evento+'|'+b.dataset.ini]?'Ver mi boleto 🎟️':'Ya estás registrado ✓';b.classList.add('done')}
+  var bolAct=null;function verBoleto(t,nuevo){bolAct=t;document.getElementById('regCampos').hidden=true;rm.className='msg ok';rm.textContent=nuevo?'¡Listo! Quedaste registrado. '+(t.email?'También te enviamos el boleto por correo. ':'')+'Guárdalo y muéstralo al llegar.':'Este es tu boleto. Muéstralo al llegar.';rc.hidden=false;document.getElementById('regBol').hidden=false;dibujarBoleto(document.getElementById('regTicket'),t).catch(function(){document.getElementById('regBol').hidden=true})}
+  document.getElementById('regSave').addEventListener('click',function(){if(bolAct)guardarBoleto(document.getElementById('regTicket'),bolAct)});
   document.querySelectorAll('.regbtn').forEach(function(b){
     if(regHechos().indexOf(b.dataset.evento+'|'+b.dataset.ini)>-1)marcar(b);
     b.addEventListener('click',function(){
-      rb=b;rf.reset();rm.className='msg';rm.textContent='';rc.hidden=true;document.getElementById('regCampos').hidden=false;
+      rb=b;rf.reset();rm.className='msg';rm.textContent='';rc.hidden=true;document.getElementById('regBol').hidden=true;document.getElementById('regCampos').hidden=false;
       document.getElementById('regEv').textContent=b.dataset.evento;document.getElementById('regCuando').textContent=b.dataset.cuando;
       rc.href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(b.dataset.evento+' · CDA')+'&dates='+b.dataset.ini+'/'+b.dataset.fin+'&ctz=America/New_York&location='+encodeURIComponent('CDA Casa del Alfarero, 9227 2nd Ave, Orlando, FL 32824');
-      rd.showModal();rf.elements.name.focus();
+      rd.showModal();var tb=boletosGuardados()[b.dataset.evento+'|'+b.dataset.ini];if(tb){verBoleto(tb,false);return}rf.elements.name.focus();
     });
   });
   document.getElementById('regClose').addEventListener('click',function(){rd.close()});
@@ -937,10 +980,11 @@ footer .motto{font-weight:800;color:var(--ink)}
     if(el.web.value)return;
     if(!name||(!phone&&!email)){rm.className='msg err';rm.textContent='Escribe tu nombre y un teléfono o correo, por favor.';return}
     rs.disabled=true;rs.textContent='Enviando…';
-    var body={tipo:'registro',evento:rb.dataset.evento,fecha:rb.dataset.cuando,name:name,phone:phone,email:email,cuantos:el.cuantos.value,nota:el.nota.value.trim(),origen:'web'};
+    var bol={code:nuevoBoleto(),evento:rb.dataset.evento,cuando:rb.dataset.cuando,name:name,cuantos:+el.cuantos.value,email:email};
+    var body={tipo:'registro',evento:rb.dataset.evento,fecha:rb.dataset.cuando,name:name,phone:phone,email:email,cuantos:el.cuantos.value,nota:el.nota.value.trim(),origen:'web',boleto:bol.code};
     fetch(HOJA,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})
       .then(function(){var l=regHechos(),k=rb.dataset.evento+'|'+rb.dataset.ini;if(l.indexOf(k)<0)l.push(k);try{localStorage.setItem('cda-registros',JSON.stringify(l))}catch(x){}
-        marcar(rb);document.getElementById('regCampos').hidden=true;rm.className='msg ok';rm.textContent='¡Listo! Quedaste registrado. '+(email?'Te enviamos la confirmación por correo. ':'')+'Te esperamos.';rc.hidden=false})
+        guardarLocal(k,bol);marcar(rb);verBoleto(bol,true)})
       .catch(function(){rm.className='msg err';rm.textContent='No se pudo enviar. Revisa tu conexión o llámanos al (321) 315-1506.'})
       .then(function(){rs.disabled=false;rs.textContent='Confirmar registro'});
   });

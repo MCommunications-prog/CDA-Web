@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f5c518">
+<title>Entrada a eventos · CDA</title>
+<link rel="icon" href="../logo-cda.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;600&display=swap">
+<style>
+:root{--bg:#f6f7fb;--ink:#171a21;--muted:#5a6072;--line:#e8eaf0;--gold:#f5c518;--ok:#0f7a52;--warn:#b35c00;--bad:#b3261e;color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(90deg,#ffe066,#f5c518 55%,#ffb81c);padding:14px 16px}
+header b{font:800 1.15rem Montserrat,sans-serif;display:block}
+header span{font-size:.9rem}
+main{max-width:520px;margin:0 auto;padding:16px;display:grid;gap:14px}
+.card{background:#fff;border-radius:22px;box-shadow:0 12px 32px rgba(23,32,64,.08);padding:18px;display:grid;gap:12px}
+h1{font:800 1.4rem Montserrat,sans-serif;margin:0}
+p{margin:0;color:var(--muted)}
+input{font:inherit;font-size:18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;width:100%;text-transform:uppercase}
+.btn{font:inherit;font-weight:700;border:0;border-radius:999px;padding:14px 20px;background:var(--gold);color:var(--ink);cursor:pointer;width:100%}
+.btn.alt{background:var(--bg)}
+.row{display:flex;gap:8px}
+.row .btn{width:auto;flex:none}
+video{width:100%;border-radius:18px;background:#000;aspect-ratio:1;object-fit:cover}
+.res{border-radius:18px;padding:18px;color:#fff;display:grid;gap:4px;text-align:center}
+.res big{font:800 1.6rem Montserrat,sans-serif;display:block}
+.res.ok{background:var(--ok)}.res.warn{background:var(--warn)}.res.bad{background:var(--bad)}
+.small{font-size:.85rem}
+</style>
+</head>
+<body>
+<header><b>CDA · Entrada a eventos</b><span>Para ujieres y servidores</span></header>
+<main>
+  <section class="card" id="login">
+    <h1>Clave de entrada</h1>
+    <p>Escribe la clave que te dio la oficina. Se guarda en este teléfono.</p>
+    <input id="clave" inputmode="numeric" autocomplete="off" placeholder="Clave">
+    <button class="btn" id="entrar">Entrar</button>
+    <p class="small" id="loginMsg"></p>
+  </section>
+
+  <section class="card" id="scan" hidden>
+    <h1>Escanea el boleto</h1>
+    <div class="res" id="res" hidden></div>
+    <video id="cam" playsinline muted hidden></video>
+    <button class="btn" id="camBtn">Abrir cámara</button>
+    <p class="small">¿No escanea? Escribe el código del boleto:</p>
+    <div class="row"><input id="codigo" placeholder="CDA-XXXXXX" autocomplete="off"><button class="btn" id="buscar">Buscar</button></div>
+    <button class="btn alt small" id="salir">Cerrar sesión en este teléfono</button>
+  </section>
+</main>
+<canvas id="cv" hidden></canvas>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+(function(){
+  var HOJA='https://script.google.com/macros/s/AKfycbw-zcyu8wpUvZtUj7t_XL_ZbPlL39O_3JqJW18eXIGAOZuATd5KVYjqDSXmknMXVgOpGw/exec';
+  var $=function(id){return document.getElementById(id)};
+  function get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+  var clave=get('cda-clave-entrada'),ocupado=false,stream=null,ultimo='',ultimoT=0;
+
+  function consultar(id){
+    return fetch(HOJA+'?accion=entrada&id='+encodeURIComponent(id)+'&clave='+encodeURIComponent(clave)).then(function(r){return r.json()});
+  }
+  function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function mostrar(cls,html){var r=$('res');r.className='res '+cls;r.innerHTML=html;r.hidden=false}
+
+  function revisar(id){
+    id=String(id||'').trim().toUpperCase();
+    if(!id||ocupado)return;
+    if(id===ultimo&&Date.now()-ultimoT<4000)return;
+    ocupado=true;ultimo=id;ultimoT=Date.now();
+    mostrar('warn','<span>Buscando '+esc(id)+'…</span>');
+    consultar(id).then(function(d){
+      if(!d.ok&&d.error==='clave'){set('cda-clave-entrada',null);clave=null;parar();$('scan').hidden=true;$('login').hidden=false;$('loginMsg').textContent='La clave cambió. Escríbela de nuevo.';return}
+      if(!d.ok){mostrar('bad','<big>No encontrado</big><span>'+esc(id)+'</span><span>Revisa el código o busca el nombre en la hoja.</span>');if(navigator.vibrate)navigator.vibrate([80,60,80]);return}
+      var p=+d.personas||1;
+      if(d.antes)mostrar('warn','<big>Ya había entrado</big><span>'+esc(d.nombre)+' · '+p+(p==1?' persona':' personas')+'</span><span>Llegó: '+esc(d.antes)+'</span>');
+      else{mostrar('ok','<big>¡Bienvenido!</big><span><b>'+esc(d.nombre)+'</b></span><span>'+p+(p==1?' persona':' personas')+' · '+esc(d.evento)+'</span>');if(navigator.vibrate)navigator.vibrate(120)}
+    }).catch(function(){mostrar('bad','<big>Sin conexión</big><span>No se pudo revisar. Intenta otra vez.</span>')})
+      .then(function(){setTimeout(function(){ocupado=false},1500)});
+  }
+
+  function parar(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}$('camBtn').textContent='Abrir cámara';$('cam').hidden=true}
+  function leer(){
+    if(!stream)return;
+    var v=$('cam'),c=$('cv');
+    if(v.readyState>=2&&!ocupado&&window.jsQR){
+      var w=c.width=Math.min(v.videoWidth,640),h=c.height=Math.round(v.videoHeight*w/v.videoWidth),x=c.getContext('2d',{willReadFrequently:true});
+      x.drawImage(v,0,0,w,h);var q=jsQR(x.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+      if(q&&/^CDA-[A-Z0-9]{4,}$/.test(q.data))revisar(q.data);
+    }
+    requestAnimationFrame(leer);
+  }
+  $('camBtn').onclick=function(){
+    if(stream){parar();return}
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(s){
+      stream=s;var v=$('cam');v.hidden=false;v.srcObject=s;v.play();$('camBtn').textContent='Cerrar cámara';requestAnimationFrame(leer);
+    }).catch(function(){mostrar('bad','<big>Sin cámara</big><span>Permite el uso de la cámara o escribe el código.</span>')});
+  };
+  $('buscar').onclick=function(){revisar($('codigo').value);$('codigo').value=''};
+  $('codigo').onkeydown=function(e){if(e.key==='Enter')$('buscar').click()};
+
+  function listo(){$('login').hidden=true;$('scan').hidden=false}
+  $('entrar').onclick=function(){
+    var k=$('clave').value.trim();if(!k)return;
+    $('loginMsg').textContent='Revisando…';clave=k;
+    consultar('CDA-PRUEBA').then(function(d){
+      if(!d.ok&&d.error==='clave'){$('loginMsg').textContent='Clave incorrecta.';clave=null;return}
+      set('cda-clave-entrada',k);$('loginMsg').textContent='';listo();
+    }).catch(function(){$('loginMsg').textContent='Sin conexión. Intenta otra vez.'});
+  };
+  $('clave').onkeydown=function(e){if(e.key==='Enter')$('entrar').click()};
+  $('salir').onclick=function(){set('cda-clave-entrada',null);clave=null;parar();$('scan').hidden=true;$('login').hidden=false};
+  if(clave)listo();
+})();
+</script>
+</body>
+</html>
