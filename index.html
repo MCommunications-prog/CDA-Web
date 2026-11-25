@@ -195,6 +195,17 @@ blockquote.jer cite{font-style:normal;font-size:.9rem;color:var(--muted)}
 .pform .msg{margin:0;font-weight:600}
 .pform .msg.ok{color:#0f7a52}.pform .msg.err{color:#b3261e}
 .pform [hidden]{display:none!important}
+.event .regbtn{margin-top:10px;align-self:flex-start;padding:9px 18px;font-size:.95rem}
+.event .regbtn.done{background:#e3f5ec;color:#0f7a52;box-shadow:none}
+.regdlg{border:0;padding:0;background:transparent;width:min(520px,calc(100% - 32px));max-height:calc(100% - 32px)}
+.regdlg::backdrop{background:rgba(10,12,20,.55)}
+.regdlg .pform{box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.regdlg h3{margin:0;font-size:1.5rem}
+.regdlg .regev{background:var(--clay-soft);border-radius:14px;padding:12px 14px;display:grid;gap:2px}
+.regdlg .regev span{color:var(--muted);font-size:.95rem}
+.regdlg select,.regdlg input[type=tel],.regdlg input[type=email]{font:inherit;font-weight:400;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
+.regdlg textarea{min-height:70px}
+.regdlg .cerrar{background:none;border:0;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;padding:8px}
 @media (max-width:820px){.pray{grid-template-columns:1fr;gap:24px}}
 @media (max-width:820px){.about{grid-template-columns:1fr;gap:36px}}
 @media (max-width:420px){.pastors{grid-template-columns:1fr}}
@@ -510,6 +521,7 @@ footer .motto{font-weight:800;color:var(--ink)}
           <div class="info">
             <h3>Celebración de Thanksgiving</h3>
             <p>Miércoles 25 de noviembre a las 7:30 pm. ¡Te esperamos para dar gracias juntos!</p>
+            <button class="btn regbtn" type="button" data-evento="Celebración de Thanksgiving" data-cuando="Miércoles 25 de noviembre · 7:30 pm" data-ini="20261125T193000" data-fin="20261125T213000">Regístrate</button>
           </div>
         </article>
         <article class="event" data-hasta="2026-11-21T23:59:00-05:00">
@@ -522,6 +534,25 @@ footer .motto{font-weight:800;color:var(--ink)}
       </div>
     </div>
   </section>
+
+  <dialog class="regdlg" id="regDlg" aria-labelledby="regT">
+    <form class="pform" id="regForm" novalidate>
+      <h3 id="regT">Regístrate</h3>
+      <div class="regev"><b id="regEv"></b><span id="regCuando"></span></div>
+      <div id="regCampos" style="display:grid;gap:14px">
+        <label class="fld">Nombre y apellido<input type="text" name="name" autocomplete="name" maxlength="120"></label>
+        <label class="fld">Teléfono<input type="tel" name="phone" autocomplete="tel" maxlength="40"></label>
+        <label class="fld">Correo (te enviamos la confirmación)<input type="email" name="email" autocomplete="email" maxlength="120"></label>
+        <label class="fld">¿Cuántas personas vienen contigo incluyéndote?<select name="cuantos"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></label>
+        <label class="fld">Comentario (opcional)<textarea name="nota" maxlength="500" placeholder="Ej.: alergias, necesito transporte, vengo con niños"></textarea></label>
+        <input type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <button class="btn" type="submit" id="regSend">Confirmar registro</button>
+      </div>
+      <p class="msg" id="regMsg" role="status"></p>
+      <a class="btn" id="regCal" target="_blank" rel="noopener" hidden>Agregar a mi calendario</a>
+      <button class="cerrar" type="button" id="regClose">Cerrar</button>
+    </form>
+  </dialog>
 
   <section class="band alt" id="nosotros">
     <div class="wrap about">
@@ -883,6 +914,35 @@ footer .motto{font-weight:800;color:var(--ink)}
       .then(function(){pf.reset();syncTipo();pm.className='msg ok';pm.textContent=t==='pregunta'?'¡Gracias! Recibimos tu pregunta y te responderemos pronto.':'¡Gracias! Recibimos tu pedido y estaremos orando por ti.'})
       .catch(function(){pm.className='msg err';pm.textContent='No se pudo enviar. Revisa tu conexión o llámanos al (321) 315-1506.'})
       .then(function(){ps.disabled=false;ps.textContent='Enviar'});
+  });
+
+  // Registro a eventos: llega a la hoja CDA APP INFO (pestaña Inscripciones) y a cdaorlandoministry@gmail.com
+  var rd=document.getElementById('regDlg'),rf=document.getElementById('regForm'),rm=document.getElementById('regMsg'),rs=document.getElementById('regSend'),rc=document.getElementById('regCal'),rb=null;
+  function regHechos(){try{return JSON.parse(localStorage.getItem('cda-registros'))||[]}catch(e){return []}}
+  function marcar(b){b.textContent='Ya estás registrado ✓';b.classList.add('done')}
+  document.querySelectorAll('.regbtn').forEach(function(b){
+    if(regHechos().indexOf(b.dataset.evento+'|'+b.dataset.ini)>-1)marcar(b);
+    b.addEventListener('click',function(){
+      rb=b;rf.reset();rm.className='msg';rm.textContent='';rc.hidden=true;document.getElementById('regCampos').hidden=false;
+      document.getElementById('regEv').textContent=b.dataset.evento;document.getElementById('regCuando').textContent=b.dataset.cuando;
+      rc.href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(b.dataset.evento+' · CDA')+'&dates='+b.dataset.ini+'/'+b.dataset.fin+'&ctz=America/New_York&location='+encodeURIComponent('CDA Casa del Alfarero, 9227 2nd Ave, Orlando, FL 32824');
+      rd.showModal();rf.elements.name.focus();
+    });
+  });
+  document.getElementById('regClose').addEventListener('click',function(){rd.close()});
+  rd.addEventListener('click',function(e){if(e.target===rd)rd.close()});
+  rf.addEventListener('submit',function(e){
+    e.preventDefault();rm.className='msg';
+    var el=rf.elements,name=el.name.value.trim(),phone=el.phone.value.trim(),email=el.email.value.trim();
+    if(el.web.value)return;
+    if(!name||(!phone&&!email)){rm.className='msg err';rm.textContent='Escribe tu nombre y un teléfono o correo, por favor.';return}
+    rs.disabled=true;rs.textContent='Enviando…';
+    var body={tipo:'registro',evento:rb.dataset.evento,fecha:rb.dataset.cuando,name:name,phone:phone,email:email,cuantos:el.cuantos.value,nota:el.nota.value.trim(),origen:'web'};
+    fetch(HOJA,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})
+      .then(function(){var l=regHechos(),k=rb.dataset.evento+'|'+rb.dataset.ini;if(l.indexOf(k)<0)l.push(k);try{localStorage.setItem('cda-registros',JSON.stringify(l))}catch(x){}
+        marcar(rb);document.getElementById('regCampos').hidden=true;rm.className='msg ok';rm.textContent='¡Listo! Quedaste registrado. '+(email?'Te enviamos la confirmación por correo. ':'')+'Te esperamos.';rc.hidden=false})
+      .catch(function(){rm.className='msg err';rm.textContent='No se pudo enviar. Revisa tu conexión o llámanos al (321) 315-1506.'})
+      .then(function(){rs.disabled=false;rs.textContent='Confirmar registro'});
   });
 
   document.getElementById('yr').textContent=new Date().getFullYear();
